@@ -1,9 +1,10 @@
-from django.conf import settings
 from hashids import Hashids
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import cm
+
+from django.conf import settings
 
 
 def generate_pdf_shopping_cart(shopping_cart):

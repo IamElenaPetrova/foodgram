@@ -1,11 +1,8 @@
-from rest_framework import serializers
-from django.contrib.auth import get_user_model
 from re import match
 
-from recipes.constants import WRONG_SLUG_MESSAGE
-from recipes.models import Ingredient
-from users.constants import (EMAIL_NON_UNIQUE,
-                             REGEXVALIDATOR_USERNAME_MESSAGE)
+from django.contrib.auth import get_user_model
+from rest_framework import serializers
+
 from recipes.constants import (ERROR_AMOUNT_MUST_BE_POSITIVE,
                                ERROR_COOKING_TIME_LESS_1,
                                ERROR_DOUBLE_FAVORITE,
@@ -19,7 +16,11 @@ from recipes.constants import (ERROR_AMOUNT_MUST_BE_POSITIVE,
                                ERROR_NO_INGREDIENTS,
                                ERROR_NO_TAGS,
                                ERROR_SELF_FOLLOW,
+                               WRONG_SLUG_MESSAGE
                                )
+from recipes.models import Ingredient
+from users.constants import (EMAIL_NON_UNIQUE,
+                             REGEXVALIDATOR_USERNAME_MESSAGE)
 
 User = get_user_model()
 

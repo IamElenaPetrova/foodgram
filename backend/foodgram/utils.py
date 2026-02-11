@@ -1,6 +1,7 @@
+import os
+
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
-import os
 
 
 def register_dejavu_fonts(base_dir):

@@ -1,3 +1,5 @@
+import datetime
+
 from django.http import HttpResponse
 from django.db.models import (Count, Exists, OuterRef, Value,
                               BooleanField, Prefetch, Subquery, Sum)
@@ -8,7 +10,6 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-import datetime
 
 from .serializers import (IngredientSerializer, User,
                           UserBaseSerializer, UserSerializerSetAndDelAvatar,
