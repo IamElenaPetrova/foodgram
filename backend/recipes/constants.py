@@ -1,0 +1,88 @@
+TAG_NAME_FIELD_LENGTH = 32
+TAG_SLUG_FIELD_LENGTH = 32
+
+INGREDIENT_NAME_FIELD_LENGTH = 128
+INGREDIENT_UNIT_FIELD_LENGTH = 64
+
+RECIPE_NAME_FIELD_LENGTH = 256
+
+WRONG_SLUG_MESSAGE = (
+    'Предложенный слаг некорректен. '
+    'Допустимы только латинские буквы, цифры, дефисы и подчеркивания.')
+
+ERROR_NON_UNIQUE_INGREDIENT_MEASURE = (
+    'Ингредиент с таким названием и'
+    ' единицей измерения уже существует.'
+)
+
+ERROR_SELF_FOLLOW = (
+    'Невозможно оформить подписку на самого себя!'
+)
+
+ERROR_DOUBLE_FOLLOW = (
+    'Вы уже подписаны на этого пользователя!'
+)
+
+ERROR_NO_FOLLOW = (
+    'Вы не подписаны на этого пользователя'
+)
+
+ERROR_DOUBLE_FAVORITE = (
+    'Этот рецепт уже добавлен в избранное'
+)
+
+ERROR_NO_RECIPE_IN_FAVORITE = (
+    'Рецепт не найден в избранном'
+)
+
+ERROR_DOUBLE_SHOPPING_CART = (
+    'Этот рецепт уже добавлен в корзину'
+)
+
+ERROR_NO_RECIPE_IN_SHOPPING_CART = (
+    'Рецепт не найден в корзине'
+)
+
+ERROR_EMPTY_SHOPPING_CART = (
+    'Корзина пуста'
+)
+
+ERROR_EMPTY_TAGS = (
+    'Переданы пустые теги'
+)
+
+ERROR_COOKING_TIME_LESS_1 = (
+    'Время приготовления не может быть меньше 1'
+)
+
+ERROR_EMPTY_INGREDIENTS = (
+    'Переданы пустые ингредиенты'
+)
+
+ERROR_NON_UNIQUE_TAGS = (
+    'Теги не уникальны'
+)
+
+ERROR_NON_UNIQUE_INGREDIENTS = (
+    'Ингредиенты не уникальны'
+)
+
+ERROR_NO_INGREDIENTS = (
+    'ингредиенты обязательны'
+)
+
+ERROR_NO_TAGS = (
+    'тэги обязательны'
+)
+
+ERROR_AMOUNT_MUST_BE_POSITIVE = (
+    'количество должно быть больше 0'
+)
+
+ERROR_NO_DATA = (
+    'Отсутствует обязательное поле'
+)
+
+ERROR_AVATAR_IS_NOT_FOUND = (
+    'Аватар не найден'
+)
