@@ -15,6 +15,9 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    'CSRF_TRUSTED_ORIGINS',
+    'http://localhost,https://localhost').split(',')
 
 HASHIDS_SALT = SECRET_KEY
 HASHIDS_MIN_LENGTH = 0
@@ -160,5 +163,3 @@ DJOSER = {
 }
 
 register_dejavu_fonts(BASE_DIR)
-
-CSRF_TRUSTED_ORIGINS = ['https://foodgrammm.hopto.org']

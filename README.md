@@ -66,13 +66,14 @@ DB_HOST=db
 DB_PORT=5432
 DEBUG=FALSE
 SECRET_KEY=my-secret-key
-ALLOWED_HOSTS=localhost,127.0.0.1
+ALLOWED_HOSTS=localhost,127.0.0.1,your_domen
 DATABASE_SQLITE=FALSE
+CSRF_TRUSTED_ORIGINS=https://your_domen,http://your_domen
 ```
 Развернуть приложение:
 ```
 docker-compose up --build
 ```
 
-Проект станет доступен на локальном IP `127.0.0.1:8010`.
+Проект станет доступен на локальном IP `127.0.0.1:8000`.
 
