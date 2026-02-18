@@ -3,6 +3,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from .utils import register_dejavu_fonts
+from .constants import PAGE_SIZE
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -16,7 +17,7 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 HASHIDS_SALT = SECRET_KEY
-HASHIDS_MIN_LENGTH = 8
+HASHIDS_MIN_LENGTH = 0
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -130,7 +131,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
@@ -138,7 +138,7 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
+    'PAGE_SIZE': PAGE_SIZE,
 }
 
 DJOSER = {

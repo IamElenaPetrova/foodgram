@@ -11,14 +11,12 @@ from recipes.constants import (ERROR_AMOUNT_MUST_BE_POSITIVE,
                                ERROR_EMPTY_INGREDIENTS,
                                ERROR_EMPTY_TAGS,
                                ERROR_NON_UNIQUE_INGREDIENTS,
-                               ERROR_NON_UNIQUE_INGREDIENT_MEASURE,
                                ERROR_NON_UNIQUE_TAGS,
                                ERROR_NO_INGREDIENTS,
                                ERROR_NO_TAGS,
                                ERROR_SELF_FOLLOW,
                                WRONG_SLUG_MESSAGE
                                )
-from recipes.models import Ingredient
 from users.constants import (EMAIL_NON_UNIQUE,
                              REGEXVALIDATOR_USERNAME_MESSAGE)
 
@@ -27,6 +25,7 @@ User = get_user_model()
 
 class UsernameValidationMixin:
     """ Миксин для валидации username. """
+
     def validate_username(self, value):
         if not match(r'^[\w.@+-]+\Z', value):
             raise serializers.ValidationError(
@@ -34,20 +33,18 @@ class UsernameValidationMixin:
         return value
 
 
-class UsernameAndEmailValidationMixin:
-    """ Миксин для валидации username и e-mail."""
-    def validate(self, data):
-        if (User.objects.filter(
-            email=data.get('email', '').lower()).exists()
-           and not User.objects.filter(
-               username=data.get('username', '')).exists()):
-            raise serializers.ValidationError(
-                {'email': [EMAIL_NON_UNIQUE]},)
-        return data
+class EmailValidationMixin:
+    """ Миксин для валидации e-mail."""
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError(EMAIL_NON_UNIQUE)
+        return value
 
 
 class TagValidationMixin:
     """ Миксин для валидации slug. """
+
     def validate_slug(self, value):
         if not match(r'^[-a-zA-Z0-9_]+$', value):
             raise serializers.ValidationError(
@@ -55,21 +52,22 @@ class TagValidationMixin:
         return value
 
 
-class IngredientValidationMixin:
-    """ Миксин для валидации ингредиента. """
-    def validate(self, data):
-        if Ingredient.objects.filter(
-            name__iexact=data['name'],
-            measurement_unit__iexact=data['measurement_unit']
-        ).exists():
-            raise serializers.ValidationError(
-                [ERROR_NON_UNIQUE_INGREDIENT_MEASURE],
-            )
-        return data
+# class IngredientValidationMixin:
+#     """ Миксин для валидации ингредиента. """
+#     def validate(self, data):
+#         if Ingredient.objects.filter(
+#             name__iexact=data['name'],
+#             measurement_unit__iexact=data['measurement_unit']
+#         ).exists():
+#             raise serializers.ValidationError(
+#                 [ERROR_NON_UNIQUE_INGREDIENT_MEASURE],
+#             )
+#         return data
 
 
 class FollowValidationMixin:
     """ Миксин для валидации подписок. """
+
     def validate(self, attrs):
         request = self.context['request']
         user_is_following = request.user
@@ -89,6 +87,7 @@ class FollowValidationMixin:
 
 class FavoriteValidationMixin:
     """ Миксин для валидации избранного. """
+
     def validate(self, attrs):
         user = self.context['request'].user
         recipe = attrs.get('recipe')
@@ -103,11 +102,11 @@ class FavoriteValidationMixin:
 
 class ShoppingCartValidationMixin:
     """ Миксин для валидации корзины. """
+
     def validate(self, attrs):
         user = self.context['request'].user
         recipe = attrs.get('recipe')
-        print(recipe.id)
-        if user.shopping_cart_recipes.filter(recipe=recipe):
+        if user.shopping_cart_recipes.filter(recipe=recipe).exists():
             raise serializers.ValidationError(
                 {'recipe': [ERROR_DOUBLE_SHOPPING_CART]},
             )
@@ -116,6 +115,7 @@ class ShoppingCartValidationMixin:
 
 class RecipeValidationMixin:
     """ Миксин для валидации рецепта. """
+
     def validate(self, data):
         ingredients = data.get('recipeingredients')
         if ingredients is None:
@@ -130,12 +130,16 @@ class RecipeValidationMixin:
         return data
 
     def check_ingredients_positive_amount(self, ingredients):
+        errors = []
         for ingredient in ingredients:
-            if ingredient.get('amount') <= 0:
-                raise serializers.ValidationError(
+            amount = ingredient.get('amount')
+            if amount is None or amount <= 0:
+                errors.append(
                     f'{ingredient.get("ingredient").name}: '
-                    f'{ERROR_AMOUNT_MUST_BE_POSITIVE}',
+                    f'{ERROR_AMOUNT_MUST_BE_POSITIVE}'
                 )
+        if errors:
+            raise serializers.ValidationError(errors)
 
     def check_ingredients_unique_list(self, ingredients):
         unique_ingredients = [ing.get('ingredient') for ing in ingredients]

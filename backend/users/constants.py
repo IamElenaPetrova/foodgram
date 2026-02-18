@@ -11,6 +11,3 @@ REGEXVALIDATOR_USERNAME_MESSAGE = (
 REGEXVALIDATOR_USERNAME_CODE = 'incorrect username'
 
 EMAIL_NON_UNIQUE = 'Пользователь с таким email уже существует '
-
-USERNAME_NON_UNIQUE_ERROR = 'Пользователь c таким username ' \
-                            'зарегистрирован с другим email'

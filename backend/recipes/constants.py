@@ -68,15 +68,15 @@ ERROR_NON_UNIQUE_INGREDIENTS = (
 )
 
 ERROR_NO_INGREDIENTS = (
-    'ингредиенты обязательны'
+    'Ингредиенты обязательны'
 )
 
 ERROR_NO_TAGS = (
-    'тэги обязательны'
+    'Тэги обязательны'
 )
 
 ERROR_AMOUNT_MUST_BE_POSITIVE = (
-    'количество должно быть больше 0'
+    'Количество должно быть больше 0'
 )
 
 ERROR_NO_DATA = (

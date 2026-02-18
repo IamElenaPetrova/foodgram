@@ -9,6 +9,7 @@ from django.conf import settings
 
 def generate_pdf_shopping_cart(shopping_cart):
     """ Генерирует список покупок. """
+
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
@@ -33,8 +34,9 @@ def generate_pdf_shopping_cart(shopping_cart):
 
 def get_hashids():
     """ Инициализирует и возвращает объект Hashids."""
+
     salt = getattr(settings, 'HASHIDS_SALT', 'your-secret-salt-change-me')
-    min_length = getattr(settings, 'HASHIDS_MIN_LENGTH', 8)
+    min_length = getattr(settings, 'HASHIDS_MIN_LENGTH', 0)
     alphabet = getattr(
         settings,
         'HASHIDS_ALPHABET',
@@ -44,12 +46,14 @@ def get_hashids():
 
 def encode_recipe_id(recipe_id: int):
     """ Кодирует id рецепта. """
+
     hashids = get_hashids()
     return hashids.encode(recipe_id)
 
 
 def decode_recipe_hash(hash_string: str):
     """ Декодирует hash_string. """
+
     hashids = get_hashids()
     decoded = hashids.decode(hash_string)
     return decoded[0] if decoded else None

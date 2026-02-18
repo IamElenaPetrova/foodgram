@@ -5,7 +5,7 @@ from reportlab.pdfbase import pdfmetrics
 
 
 def register_dejavu_fonts(base_dir):
-    """ DejaVu шрифты для поддержки кириллицы """
+    """ DejaVu шрифты для поддержки кириллицы. """
 
     font_paths = {
         'DejaVu': os.path.join(base_dir, 'fonts', 'DejaVuSans.ttf'),

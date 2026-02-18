@@ -10,8 +10,9 @@ from .constants import (REGEXVALIDATOR_USERNAME_MESSAGE,
 
 class User(AbstractUser):
     """ Модель пользователя. """
+
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ('username', 'first_name', 'last_name', 'password')
+    REQUIRED_FIELDS = ('username', 'first_name', 'last_name')
 
     username = models.CharField(
         unique=True,
@@ -36,6 +37,7 @@ class User(AbstractUser):
     avatar = models.ImageField(
         upload_to='users/avatars/',
         blank=True,
+        null=True,
         default=None,
         verbose_name='Аватар'
     )
@@ -51,6 +53,7 @@ class User(AbstractUser):
 
 class Follow(models.Model):
     """ Модель подписки. """
+
     # кто подписан
     user_is_following = models.ForeignKey(
         User,
