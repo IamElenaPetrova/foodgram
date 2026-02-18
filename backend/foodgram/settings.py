@@ -160,3 +160,5 @@ DJOSER = {
 }
 
 register_dejavu_fonts(BASE_DIR)
+
+CSRF_TRUSTED_ORIGINS = ['https://foodgrammm.hopto.org']
