@@ -2,7 +2,6 @@ from django.core.exceptions import ValidationError
 from django.contrib import admin
 from django.forms.models import BaseInlineFormSet
 
-from recipes.forms import RecipeAdminForm
 from recipes.models import (Ingredient, Recipe, RecipeIngredient,
                             RecipeFavorite,
                             ShoppingCart, Tag)
@@ -20,7 +19,6 @@ class TagAdmin(admin.ModelAdmin):
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'measurement_unit')
     search_fields = ('name',)
-    list_filter = ('name',)
     list_display_links = ('name',)
 
 
@@ -48,7 +46,6 @@ class IngredientsInLine(admin.StackedInline):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    form = RecipeAdminForm
     list_display = ('id', 'name', 'author', 'pub_date', 'text',
                     'favorites_amount')
     search_fields = ('name', 'author__username')
@@ -67,15 +64,20 @@ class RecipeAdmin(admin.ModelAdmin):
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'recipe',)
     search_fields = ('user__username', 'recipe__name',)
+    list_filter = ('user', )
+    list_display_links = ('user',)
 
 
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'recipe',)
     search_fields = ('user__username', 'recipe__name',)
+    list_filter = ('user', )
+    list_display_links = ('user',)
 
 
 @admin.register(RecipeIngredient)
 class RecipeIngredientAdmin(admin.ModelAdmin):
     list_display = ('id', 'recipe', 'ingredient', 'amount',)
     search_fields = ('recipe__name', 'ingredient__name')
+    list_filter = ('recipe', )

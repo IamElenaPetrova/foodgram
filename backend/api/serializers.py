@@ -1,3 +1,4 @@
+from re import match
 import base64
 
 from django.core.files.base import ContentFile
@@ -8,11 +9,22 @@ from rest_framework import serializers
 from recipes.models import (Ingredient, Recipe, RecipeIngredient,
                             RecipeFavorite, ShoppingCart, Tag)
 from users.models import Follow
-from .mixins import (UsernameValidationMixin, EmailValidationMixin,
-                     FavoriteValidationMixin, FollowValidationMixin,
-                     RecipeValidationMixin,
-                     ShoppingCartValidationMixin,
-                     TagValidationMixin)
+from recipes.constants import (ERROR_AMOUNT_MUST_BE_POSITIVE,
+                               ERROR_COOKING_TIME_LESS_1,
+                               ERROR_DOUBLE_FAVORITE,
+                               ERROR_DOUBLE_FOLLOW,
+                               ERROR_DOUBLE_SHOPPING_CART,
+                               ERROR_EMPTY_INGREDIENTS,
+                               ERROR_EMPTY_TAGS,
+                               ERROR_NON_UNIQUE_INGREDIENTS,
+                               ERROR_NON_UNIQUE_TAGS,
+                               ERROR_NO_INGREDIENTS,
+                               ERROR_NO_TAGS,
+                               ERROR_SELF_FOLLOW,
+                               WRONG_SLUG_MESSAGE
+                               )
+from users.constants import (EMAIL_NON_UNIQUE,
+                             REGEXVALIDATOR_USERNAME_MESSAGE)
 
 User = get_user_model()
 
@@ -26,9 +38,7 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-class UserBaseSerializer(EmailValidationMixin,
-                         UsernameValidationMixin,
-                         serializers.ModelSerializer):
+class UserBaseSerializer(serializers.ModelSerializer):
     """ Базовый сериализатор для работы с пользователем. """
 
     is_subscribed = serializers.SerializerMethodField()
@@ -46,6 +56,17 @@ class UserBaseSerializer(EmailValidationMixin,
         if not request or not request.user.is_authenticated:
             return False
         return request.user.following.filter(user_being_followed=obj).exists()
+
+    def validate_username(self, value):
+        if not match(r'^[\w.@+-]+\Z', value):
+            raise serializers.ValidationError(
+                [REGEXVALIDATOR_USERNAME_MESSAGE],)
+        return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError(EMAIL_NON_UNIQUE)
+        return value
 
 
 class UserSerializerSetAndDelAvatar(serializers.ModelSerializer):
@@ -88,7 +109,7 @@ class UserSerializerWithRecipeCount(
             context={'request': self.context.get('request')}).data
 
 
-class FollowSerializer(FollowValidationMixin, serializers.ModelSerializer):
+class FollowSerializer(serializers.ModelSerializer):
     """ Сериализатор для работы с подписками. """
 
     user_being_followed = serializers.PrimaryKeyRelatedField(
@@ -104,6 +125,22 @@ class FollowSerializer(FollowValidationMixin, serializers.ModelSerializer):
         validated_data['user_is_following'] = self.context.get('request').user
         return super().create(validated_data)
 
+    def validate(self, attrs):
+        request = self.context['request']
+        user_is_following = request.user
+        user_being_followed = attrs.get('user_being_followed')
+        if user_is_following == user_being_followed:
+            raise serializers.ValidationError(
+                {'user_is_following': [ERROR_SELF_FOLLOW]},
+            )
+        if user_is_following.following.filter(
+            user_being_followed=user_being_followed
+        ).exists():
+            raise serializers.ValidationError(
+                {'user_being_followed': [ERROR_DOUBLE_FOLLOW]},
+            )
+        return attrs
+
 
 class IngredientSerializer(serializers.ModelSerializer):
     """ Сериализатор для работы с ингредиентами. """
@@ -113,12 +150,18 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit')
 
 
-class TagSerializer(TagValidationMixin, serializers.ModelSerializer):
+class TagSerializer(serializers.ModelSerializer):
     """ Сериализатор для работы с тегами. """
 
     class Meta:
         model = Tag
         fields = ('id', 'name', 'slug')
+
+    def validate_slug(self, value):
+        if not match(r'^[-a-zA-Z0-9_]+$', value):
+            raise serializers.ValidationError(
+                [WRONG_SLUG_MESSAGE],)
+        return value
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
@@ -142,8 +185,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'amount', 'measurement_unit')
 
 
-class RecipeWriteSerializer(RecipeValidationMixin,
-                            serializers.ModelSerializer):
+class RecipeWriteSerializer(serializers.ModelSerializer):
     """ Сериализатор рецепта для записи. """
 
     tags = serializers.PrimaryKeyRelatedField(
@@ -220,6 +262,68 @@ class RecipeWriteSerializer(RecipeValidationMixin,
             self.update_ingredients(instance, ingredients_data)
         return instance
 
+    def validate(self, data):
+        ingredients = data.get('recipeingredients')
+        if ingredients is None:
+            raise serializers.ValidationError(
+                {'ingredients': [ERROR_NO_INGREDIENTS]},
+            )
+        tags = data.get('tags')
+        if tags is None:
+            raise serializers.ValidationError(
+                {'tags': [ERROR_NO_TAGS]},
+            )
+        return data
+
+    def check_ingredients_positive_amount(self, ingredients):
+        errors = []
+        for ingredient in ingredients:
+            amount = ingredient.get('amount')
+            if amount is None or amount <= 0:
+                errors.append(
+                    f'{ingredient.get("ingredient").name}: '
+                    f'{ERROR_AMOUNT_MUST_BE_POSITIVE}'
+                )
+        if errors:
+            raise serializers.ValidationError(errors)
+
+    def check_ingredients_unique_list(self, ingredients):
+        unique_ingredients = [ing.get('ingredient') for ing in ingredients]
+        if len(ingredients) != len(set(unique_ingredients)):
+            raise serializers.ValidationError(
+                [ERROR_NON_UNIQUE_INGREDIENTS],
+            )
+
+    def check_tags_unique_list(self, tags):
+        if len(tags) != len(set(tags)):
+            raise serializers.ValidationError(
+                [ERROR_NON_UNIQUE_TAGS],
+            )
+
+    def validate_ingredients(self, value):
+        if len(value) == 0:
+            raise serializers.ValidationError(
+                [ERROR_EMPTY_INGREDIENTS],
+            )
+        self.check_ingredients_positive_amount(value)
+        self.check_ingredients_unique_list(value)
+        return value
+
+    def validate_cooking_time(self, value):
+        if value < 1:
+            raise serializers.ValidationError(
+                [ERROR_COOKING_TIME_LESS_1],
+            )
+        return value
+
+    def validate_tags(self, value):
+        if len(value) == 0:
+            raise serializers.ValidationError(
+                [ERROR_EMPTY_TAGS],
+            )
+        self.check_tags_unique_list(value)
+        return value
+
     def to_representation(self, instance):
         return RecipeReadSerializer(
             instance,
@@ -264,8 +368,7 @@ class RecipeReducedSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
-class RecipeFavoriteSerializer(FavoriteValidationMixin,
-                               serializers.ModelSerializer):
+class RecipeFavoriteSerializer(serializers.ModelSerializer):
     """ Сериализатор для работы с избранным. """
 
     class Meta:
@@ -276,9 +379,19 @@ class RecipeFavoriteSerializer(FavoriteValidationMixin,
         validated_data['user'] = self.context.get('request').user
         return super().create(validated_data)
 
+    def validate(self, attrs):
+        user = self.context['request'].user
+        recipe = attrs.get('recipe')
+        if user.favorite_recipes.filter(
+            recipe=recipe
+        ).exists():
+            raise serializers.ValidationError(
+                {'recipe': [ERROR_DOUBLE_FAVORITE]},
+            )
+        return attrs
 
-class RecipeShoppingCartSerializer(ShoppingCartValidationMixin,
-                                   serializers.ModelSerializer):
+
+class RecipeShoppingCartSerializer(serializers.ModelSerializer):
     """ Сериализатор для работы с корзиной. """
 
     class Meta:
@@ -288,3 +401,12 @@ class RecipeShoppingCartSerializer(ShoppingCartValidationMixin,
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+        recipe = attrs.get('recipe')
+        if user.shopping_cart_recipes.filter(recipe=recipe).exists():
+            raise serializers.ValidationError(
+                {'recipe': [ERROR_DOUBLE_SHOPPING_CART]},
+            )
+        return attrs

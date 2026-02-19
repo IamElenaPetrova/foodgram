@@ -13,6 +13,13 @@ admin.site.unregister(Group)
 admin.site.empty_value_display = 'Не задано'
 
 
+@admin.register(Follow)
+class FollowAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user_is_following', 'user_being_followed')
+    list_filter = ('user_is_following', 'user_being_followed')
+    list_display_links = ('user_is_following',)
+
+
 class FollowInLine(admin.TabularInline):
     model = Follow
     extra = 1
@@ -26,13 +33,21 @@ class RecipeFavoriteInLine(admin.TabularInline):
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
+    filter_horizontal = ()
+    fieldsets = (
+        (None, {'fields': ('username', 'email', 'password')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'avatar')}),
+        ('Permissions', {'fields': ('is_active', 'is_superuser')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+    )
     inlines = (FollowInLine, RecipeFavoriteInLine)
     list_display = (
         'id', 'username', 'email',
-        'first_name', 'last_name', 'is_staff', 'get_avatar'
+        'first_name', 'last_name', 'is_active', 'is_superuser', 'get_avatar'
     )
-    list_filter = ('is_staff', 'is_superuser')
+    list_filter = ('is_active', 'is_superuser')
     search_fields = ('username', 'email')
+    list_display_links = ('username',)
 
     @admin.display(description='Аватар')
     def get_avatar(self, obj):
