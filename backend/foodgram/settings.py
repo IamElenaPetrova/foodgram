@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 from .utils import register_dejavu_fonts
@@ -149,11 +150,6 @@ DJOSER = {
     'PERMISSIONS': {
         'user': ['rest_framework.permissions.AllowAny'],
         'user_list': ['rest_framework.permissions.AllowAny'],
-        'user_delete': ['rest_framework.permissions.IsAdminUser'],
-        'username_reset': ['rest_framework.permissions.IsAdminUser'],
-        'username_reset_confirm': ['rest_framework.permissions.IsAdminUser'],
-        'set_username': ['rest_framework.permissions.IsAdminUser'],
-
     },
     'SERIALIZERS': {
         'user': 'api.serializers.UserBaseSerializer',

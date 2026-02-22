@@ -6,6 +6,21 @@ INGREDIENT_UNIT_FIELD_LENGTH = 64
 
 RECIPE_NAME_FIELD_LENGTH = 256
 
+MAX_STR_LENGTH = 20
+
+MIN_COOKING_TIME = 1
+MAX_COOKING_TIME = 2880
+
+MIN_AMOUNT = 1
+MAX_AMOUNT = 1000
+
+COOKING_TIME_ERROR = ('Время приготовления должно быть '
+                      'от 1 до 2880 минут(48 часов)')
+
+AMOUNT_RANGE_ERROR = 'Количество должно быть от 1 до 10000'
+
+ERROR_ALREADY_EXISTS = 'уже существует.'
+
 WRONG_SLUG_MESSAGE = (
     'Предложенный слаг некорректен. '
     'Допустимы только латинские буквы, цифры, дефисы и подчеркивания.')
@@ -29,6 +44,10 @@ ERROR_NO_FOLLOW = (
 
 ERROR_DOUBLE_FAVORITE = (
     'Этот рецепт уже добавлен в избранное'
+)
+
+ERROR_NO_RECIPE_FOUND = (
+    'Рецепт не найден'
 )
 
 ERROR_NO_RECIPE_IN_FAVORITE = (

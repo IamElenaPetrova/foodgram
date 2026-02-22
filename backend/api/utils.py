@@ -1,5 +1,6 @@
-from hashids import Hashids
 from io import BytesIO
+
+from hashids import Hashids
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import cm
@@ -23,13 +24,12 @@ def generate_pdf_shopping_cart(shopping_cart):
     p.setFont('DejaVu', 10)
     for i, item in enumerate(shopping_cart, 1):
         y -= 0.7 * cm
-        p.drawString(2 * cm, y, f'{i}. {item["ingredient__name"]}')
+        p.drawString(2 * cm, y, f'{i}. {item["name"]}')
         p.drawString(12 * cm, y, str(item['total_amount']))
-        p.drawString(15 * cm, y, item['ingredient__measurement_unit'])
+        p.drawString(15 * cm, y, item['measurement_unit'])
     p.save()
-    pdf = buffer.getvalue()
-    buffer.close()
-    return pdf
+    buffer.seek(0)
+    return buffer
 
 
 def get_hashids():

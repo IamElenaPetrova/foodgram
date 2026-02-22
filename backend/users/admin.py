@@ -1,3 +1,4 @@
+from django.db.models import Count
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
@@ -5,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.utils.safestring import mark_safe
 
 from .models import Follow
-from recipes.models import RecipeFavorite
+from recipes.models import RecipeFavorite, Recipe
 
 User = get_user_model()
 
@@ -15,15 +16,15 @@ admin.site.empty_value_display = 'Не задано'
 
 @admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user_is_following', 'user_being_followed')
-    list_filter = ('user_is_following', 'user_being_followed')
-    list_display_links = ('user_is_following',)
+    list_display = ('id', 'user', 'author')
+    list_filter = ('user', 'author')
+    list_display_links = ('user',)
 
 
 class FollowInLine(admin.TabularInline):
     model = Follow
     extra = 1
-    fk_name = 'user_is_following'
+    fk_name = 'user'
 
 
 class RecipeFavoriteInLine(admin.TabularInline):
@@ -33,6 +34,23 @@ class RecipeFavoriteInLine(admin.TabularInline):
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.annotate(
+            recipes_count=Count('recipes'),
+            followers_count=Count('subscribers')
+        )
+
+    @admin.display(description='Количество рецептов',
+                   ordering='recipes_count')
+    def recipes_count(self, obj):
+        return obj.recipes_count
+
+    @admin.display(description='Количество подписчиков',
+                   ordering='followers_count')
+    def followers_count(self, obj):
+        return obj.followers_count
+
     filter_horizontal = ()
     fieldsets = (
         (None, {'fields': ('username', 'email', 'password')}),
@@ -43,7 +61,9 @@ class UserAdmin(BaseUserAdmin):
     inlines = (FollowInLine, RecipeFavoriteInLine)
     list_display = (
         'id', 'username', 'email',
-        'first_name', 'last_name', 'is_active', 'is_superuser', 'get_avatar'
+        'first_name', 'last_name',
+        'is_active', 'is_superuser',
+        'recipes_count', 'followers_count', 'get_avatar'
     )
     list_filter = ('is_active', 'is_superuser')
     search_fields = ('username', 'email')

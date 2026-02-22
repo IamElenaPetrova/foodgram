@@ -55,33 +55,33 @@ class Follow(models.Model):
     """ Модель подписки. """
 
     # кто подписан
-    user_is_following = models.ForeignKey(
+    user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='following',
+        related_name='subscriptions',
         verbose_name='Подписчик'
     )
     # на кого подписан
-    user_being_followed = models.ForeignKey(
+    author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='followers',
+        related_name='subscribers',
         verbose_name='Автор'
     )
 
     class Meta:
         constraints = (
             models.UniqueConstraint(
-                fields=('user_is_following', 'user_being_followed'),
+                fields=('user', 'author'),
                 name='%(app_label)s_%(class)s_unique_following'),
             models.CheckConstraint(
                 check=~models.Q(
-                    user_is_following=models.F('user_being_followed')),
+                    user=models.F('author')),
                 name='%(app_label)s_%(class)s_prevent_self_follow')
         )
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
 
     def __str__(self):
-        return (f'{self.user_is_following.username} '
-                f'подписан на {self.user_being_followed.username}')
+        return (f'{self.user.username} '
+                f'подписан на {self.author.username}')
