@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.utils.safestring import mark_safe
 
 from .models import Follow
-from recipes.models import RecipeFavorite, Recipe
+from recipes.models import RecipeFavorite
 
 User = get_user_model()
 
