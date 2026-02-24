@@ -21,10 +21,11 @@ from .serializers import (IngredientSerializer,
 from recipes.models import (Ingredient, Recipe, RecipeFavorite,
                             RecipeIngredient, ShoppingCart, Tag)
 from users.models import Follow
-from recipes.constants import (ERROR_AVATAR_IS_NOT_FOUND,
-                               ERROR_EMPTY_SHOPPING_CART,
-                               ERROR_NO_DATA, ERROR_NO_FOLLOW,
-                               ERROR_NO_RECIPE_FOUND)
+from recipes.constants import (
+    ERROR_EMPTY_SHOPPING_CART,
+    ERROR_NO_DATA, ERROR_NO_FOLLOW,
+    ERROR_NO_RECIPE_FOUND
+)
 from .filters import NameSearchFilter, RecipeFilter
 from .pagination import RecipePagination
 from .permissions import IsOwnerOrReadOnly
@@ -36,14 +37,14 @@ class UserViewSet(DjoserViewSet):
     pagination_class = RecipePagination
     http_method_names = ('get', 'post', 'put', 'delete')
 
-    @action(detail=False, methods=['get'],
-            permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=('get',),
+            permission_classes=(IsAuthenticated,))
     def me(self, request):
         serializer = UserBaseSerializer(
             request.user, context={'request': request})
         return Response(serializer.data)
 
-    @action(detail=False, methods=['put'],
+    @action(detail=False, methods=('put',),
             url_path='me/avatar', permission_classes=(IsAuthenticated,))
     def me_avatar(self, request):
         if 'avatar' not in request.data:
@@ -61,13 +62,8 @@ class UserViewSet(DjoserViewSet):
 
     @me_avatar.mapping.delete
     def delete_avatar(self, request):
-        if request.user.avatar:
-            request.user.avatar.delete(save=True)
-            return Response(status=HTTPStatus.NO_CONTENT)
-        return Response(
-            {'detail': [ERROR_AVATAR_IS_NOT_FOUND]},
-            status=HTTPStatus.NOT_FOUND
-        )
+        request.user.avatar.delete(save=True)
+        return Response(status=HTTPStatus.NO_CONTENT)
 
     @action(detail=True, methods=('post',),
             permission_classes=(IsAuthenticated,),
@@ -78,35 +74,26 @@ class UserViewSet(DjoserViewSet):
             data={'author': author.id},
             context={'request': request})
         serializer.is_valid(raise_exception=True)
-        follow = Follow.objects.create(
-            user=request.user,
-            author=author
-        )
-        return Response(
-            FollowSerializer(follow, context={'request': request}).data,
-            status=HTTPStatus.CREATED
-        )
+        serializer.save(user=request.user)
+        return Response(serializer.data, status=HTTPStatus.CREATED)
 
     @subscribe.mapping.delete
     def delete_subscribe(self, request, *args, **kwargs):
         author = self.get_object()
-        user = request.user
-        is_subscribed = user.subscriptions.filter(author=author).exists()
-        if is_subscribed:
-            user.subscriptions.filter(author=author).delete()
+        deleted_count, _ = Follow.objects.filter(
+            user=request.user, author=author
+        ).delete()
+        if deleted_count:
             return Response(status=HTTPStatus.NO_CONTENT)
-        else:
-            return Response(
-                {'author': [ERROR_NO_FOLLOW]},
-                status=HTTPStatus.BAD_REQUEST
-            )
+        return Response({'author': [ERROR_NO_FOLLOW]},
+                        status=HTTPStatus.BAD_REQUEST)
 
     @action(detail=False, methods=('get',),
             url_path='subscriptions', url_name='subscriptions')
     def subscriptions(self, request, *args, **kwargs):
         queryset = self.get_queryset().filter(
-            subscribers__user=request.user).annotate(
-                recipes_count=Count('recipes'))
+            follows_as_author__user=request.user).annotate(
+                recipes_count=Count('recipes')).order_by('username')
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = UserSerializerWithRecipeCount(
@@ -160,7 +147,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     to_attr='user_shopping_cart'
                 )
             )
-
         return base_queryset
 
     def get_serializer_class(self):
@@ -168,10 +154,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeReadSerializer
         return RecipeWriteSerializer
 
-    @action(detail=True, methods=['get'],
+    @action(detail=True, methods=('get',),
             url_path='get-link',
             url_name='get-link',
-            permission_classes=[AllowAny])
+            permission_classes=(AllowAny,))
     def get_short_link(self, request, *args, **kwargs):
         recipe = self.get_object()
         short_hash = encode_recipe_id(recipe.id)
@@ -196,11 +182,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = self.get_object()
         deleted_count, _ = model.objects.filter(user=user,
                                                 recipe_id=recipe.id).delete()
-        if deleted_count:
-            return Response(status=HTTPStatus.NO_CONTENT)
         return Response(
-            {'errors': ERROR_NO_RECIPE_FOUND}, status=HTTPStatus.BAD_REQUEST
-        )
+            status=HTTPStatus.NO_CONTENT
+        ) if deleted_count else Response(
+            {'errors': ERROR_NO_RECIPE_FOUND},
+            status=HTTPStatus.BAD_REQUEST)
 
     @action(detail=True, methods=('post',),
             url_path='favorite',
@@ -246,7 +232,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Response({'detail': ERROR_EMPTY_SHOPPING_CART},
                             status=HTTPStatus.BAD_REQUEST)
         pdf_buffer = generate_pdf_shopping_cart(shopping_cart)
-        current_date = datetime.datetime.now().strftime("%Y%m%d")
+        current_date = datetime.datetime.now().strftime('%Y%m%d')
         filename = f'shopping_list_{current_date}.pdf'
         return FileResponse(pdf_buffer, as_attachment=True,
                             filename=filename, content_type='application/pdf')

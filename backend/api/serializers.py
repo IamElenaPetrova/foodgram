@@ -1,5 +1,4 @@
 from drf_extra_fields.fields import Base64ImageField
-
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from djoser.serializers import UserSerializer as DjoserSerializer
@@ -23,8 +22,7 @@ from recipes.constants import (AMOUNT_RANGE_ERROR,
                                MIN_AMOUNT,
                                MAX_AMOUNT,
                                MIN_COOKING_TIME,
-                               MAX_COOKING_TIME
-                               )
+                               MAX_COOKING_TIME)
 
 User = get_user_model()
 
@@ -46,7 +44,7 @@ class UserBaseSerializer(DjoserSerializer):
         return (
             request
             and request.user.is_authenticated
-            and request.user.subscriptions.filter(author=obj).exists()
+            and request.user.follows_as_follower.filter(author=obj).exists()
         )
 
 
@@ -110,7 +108,7 @@ class FollowSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'user': [ERROR_SELF_FOLLOW]},
             )
-        if user.subscriptions.filter(
+        if user.follows_as_follower.filter(
             author=author
         ).exists():
             raise serializers.ValidationError(
@@ -229,7 +227,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags', None)
         ingredients = validated_data.pop('recipeingredients', None)
-        instance = super().update(instance, validated_data)
+        super().update(instance, validated_data)
         if tags:
             instance.tags.set(tags)
         if ingredients:
@@ -252,12 +250,14 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             unique_ingredients = [ing.get('ingredient') for ing in ingredients]
             if len(ingredients) != len(set(unique_ingredients)):
                 errors['ingredients'] = [ERROR_NON_UNIQUE_INGREDIENTS]
-        image = data.get('image')
-        if not image:
-            errors['image'] = [ERROR_NO_DATA]
         if errors:
             raise serializers.ValidationError(errors)
         return data
+
+    def validate_image(self, value):
+        if not value:
+            raise serializers.ValidationError(ERROR_NO_DATA)
+        return value
 
     def to_representation(self, instance):
         return RecipeReadSerializer(instance, context=self.context).data

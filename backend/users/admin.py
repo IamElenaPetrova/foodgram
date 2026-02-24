@@ -34,23 +34,6 @@ class RecipeFavoriteInLine(admin.TabularInline):
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        return queryset.annotate(
-            recipes_count=Count('recipes'),
-            followers_count=Count('subscribers')
-        )
-
-    @admin.display(description='Количество рецептов',
-                   ordering='recipes_count')
-    def recipes_count(self, obj):
-        return obj.recipes_count
-
-    @admin.display(description='Количество подписчиков',
-                   ordering='followers_count')
-    def followers_count(self, obj):
-        return obj.followers_count
-
     filter_horizontal = ()
     fieldsets = (
         (None, {'fields': ('username', 'email', 'password')}),
@@ -74,3 +57,20 @@ class UserAdmin(BaseUserAdmin):
         if obj.avatar and obj.avatar.url:
             return mark_safe(f'<img src={obj.avatar.url} '
                              'width="60" height="60">')
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.annotate(
+            recipes_count=Count('recipes'),
+            followers_count=Count('follows_as_author')
+        )
+
+    @admin.display(description='Количество рецептов',
+                   ordering='recipes_count')
+    def recipes_count(self, obj):
+        return obj.recipes_count
+
+    @admin.display(description='Количество подписчиков',
+                   ordering='followers_count')
+    def followers_count(self, obj):
+        return obj.followers_count

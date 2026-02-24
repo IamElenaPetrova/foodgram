@@ -87,12 +87,12 @@ class Recipe(models.Model):
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
     cooking_time = models.PositiveSmallIntegerField(
         'Время приготовления',
-        validators=[
+        validators=(
             MinValueValidator(MIN_COOKING_TIME,
                               message=ERROR_COOKING_TIME_LESS_1),
             MaxValueValidator(MAX_COOKING_TIME,
                               message=COOKING_TIME_ERROR)
-        ])
+        ))
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -128,12 +128,12 @@ class RecipeIngredient(models.Model):
                                    verbose_name='Ингредиент')
     amount = models.PositiveSmallIntegerField(
         'Количество',
-        validators=[
+        validators=(
             MinValueValidator(MIN_AMOUNT,
                               message=ERROR_AMOUNT_MUST_BE_POSITIVE),
             MaxValueValidator(MAX_AMOUNT,
                               message=AMOUNT_RANGE_ERROR)
-        ])
+        ))
 
     class Meta:
         default_related_name = 'recipeingredients'

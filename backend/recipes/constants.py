@@ -9,15 +9,16 @@ RECIPE_NAME_FIELD_LENGTH = 256
 MAX_STR_LENGTH = 20
 
 MIN_COOKING_TIME = 1
-MAX_COOKING_TIME = 2880
+MAX_COOKING_TIME = 32767
 
 MIN_AMOUNT = 1
-MAX_AMOUNT = 1000
+MAX_AMOUNT = 32767
 
-COOKING_TIME_ERROR = ('Время приготовления должно быть '
-                      'от 1 до 2880 минут(48 часов)')
+COOKING_TIME_ERROR = (f'Время приготовления должно быть '
+                      f'от {MIN_COOKING_TIME} до {MAX_COOKING_TIME} минут')
 
-AMOUNT_RANGE_ERROR = 'Количество должно быть от 1 до 10000'
+AMOUNT_RANGE_ERROR = (f'Количество должно быть от '
+                      f'{MIN_AMOUNT} до {MAX_AMOUNT}')
 
 ERROR_ALREADY_EXISTS = 'уже существует.'
 
