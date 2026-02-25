@@ -44,7 +44,7 @@ class UserBaseSerializer(DjoserSerializer):
         return (
             request
             and request.user.is_authenticated
-            and request.user.follows_as_follower.filter(author=obj).exists()
+            and request.user.follows_of_user.filter(author=obj).exists()
         )
 
 
@@ -108,7 +108,7 @@ class FollowSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'user': [ERROR_SELF_FOLLOW]},
             )
-        if user.follows_as_follower.filter(
+        if user.follows_of_user.filter(
             author=author
         ).exists():
             raise serializers.ValidationError(
@@ -227,13 +227,12 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags', None)
         ingredients = validated_data.pop('recipeingredients', None)
-        super().update(instance, validated_data)
         if tags:
             instance.tags.set(tags)
         if ingredients:
             instance.recipeingredients.all().delete()
             self.bulk_create_ingredients(instance, ingredients)
-        return instance
+        return super().update(instance, validated_data)
 
     def validate(self, data):
         errors = {}

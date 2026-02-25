@@ -62,7 +62,7 @@ class UserAdmin(BaseUserAdmin):
         queryset = super().get_queryset(request)
         return queryset.annotate(
             recipes_count=Count('recipes'),
-            followers_count=Count('follows_as_author')
+            followers_count=Count('follows_to_author')
         )
 
     @admin.display(description='Количество рецептов',

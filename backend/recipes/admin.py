@@ -56,7 +56,7 @@ class IngredientsInLine(admin.StackedInline):
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'author', 'pub_date', 'text',
                     'ingredients_list', 'tags_list',
-                    'favorites_amount')
+                    'favorites_amount', 'image_preview')
     search_fields = ('name', 'author__username')
     list_filter = ('author', 'name', 'tags', CookingTimeFilter)
     filter_horizontal = ('tags',)

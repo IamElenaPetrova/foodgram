@@ -92,15 +92,18 @@ class UserViewSet(DjoserViewSet):
             url_path='subscriptions', url_name='subscriptions')
     def subscriptions(self, request, *args, **kwargs):
         queryset = self.get_queryset().filter(
-            follows_as_author__user=request.user).annotate(
-                recipes_count=Count('recipes')).order_by('username')
+            follows_to_author__user=request.user).annotate(
+                recipes_count=Count('recipes')
+        ).order_by('username')
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = UserSerializerWithRecipeCount(
-                page, many=True, context={'request': request})
+                page, many=True, context={'request': request}
+            )
             return self.get_paginated_response(serializer.data)
         serializer = UserSerializerWithRecipeCount(
-            queryset, many=True, context={'request': request})
+            queryset, many=True, context={'request': request}
+        )
         return Response(serializer.data, status=HTTPStatus.OK)
 
 

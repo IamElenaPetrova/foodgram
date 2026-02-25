@@ -23,17 +23,21 @@ class User(AbstractUser):
                 message=REGEXVALIDATOR_USERNAME_MESSAGE,
                 code=REGEXVALIDATOR_USERNAME_CODE,
             ),),
-        verbose_name='Имя пользователя')
+        verbose_name='Имя пользователя'
+    )
     email = models.EmailField(
         unique=True,
         max_length=EMAIL_FIELD_LENGTH,
-        verbose_name='Электронная почта')
+        verbose_name='Электронная почта'
+    )
     first_name = models.CharField(
         max_length=FIRST_NAME_FIELD_LENGTH,
-        verbose_name='Имя')
+        verbose_name='Имя'
+    )
     last_name = models.CharField(
         max_length=LAST_NAME_FIELD_LENGTH,
-        verbose_name='Фамилия')
+        verbose_name='Фамилия'
+    )
     avatar = models.ImageField(
         upload_to='users/avatars/',
         blank=True,
@@ -58,14 +62,14 @@ class Follow(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='follows_as_follower',
+        related_name='follows_of_user',
         verbose_name='Подписчик'
     )
     # на кого подписан
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='follows_as_author',
+        related_name='follows_to_author',
         verbose_name='Автор'
     )
 
